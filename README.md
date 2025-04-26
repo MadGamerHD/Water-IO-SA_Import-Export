@@ -60,6 +60,8 @@
 - It works with both **triangles** (3 vertices) and **quads** (4 vertices) automatically.
 - If the `.dat` file format is wrong (missing numbers, etc.), import will skip that line safely.
 
+![Screenshot 2025-04-26 205745](https://github.com/user-attachments/assets/5c929e8e-bb5a-478b-91e1-d1778aac194f)
+
 ---
 
 ## 🛠️ Summary
