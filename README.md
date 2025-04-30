@@ -105,5 +105,3 @@ A new panel in **Scene Properties → Water Options** provides:
 
 _Previews_:  
 ![Screenshot 2025-04-30 171417](https://github.com/user-attachments/assets/ba0509f7-af82-4f3b-bf83-b387152bd999)
-![Screenshot 2025-04-30 121608](https://github.com/user-attachments/assets/ae085fa9-73e5-42c5-b5e9-b729b170b6b9)  
-![Screenshot 2025-04-30 121431](https://github.com/user-attachments/assets/451ca51a-a9ef-4f20-a121-52aa86fa1efb)
