@@ -1,5 +1,5 @@
 bl_info = {
-    "name": "Water IO",
+    "name": "Water IO Version 1.1.0",
     "author": "MadGamerHD",
     "version": (1, 1, 0),
     "blender": (4, 0, 0),
