@@ -1,6 +1,6 @@
 bl_info = {
     "name": "Water IO",
-    "author": "MadGamerHD + GPT Assistant",
+    "author": "MadGamerHD",
     "version": (1, 1, 0),
     "blender": (4, 0, 0),
     "location": "View3D > Sidebar > Water IO / Object Properties > Water Face Parameters",
