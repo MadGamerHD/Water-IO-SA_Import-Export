@@ -1,20 +1,34 @@
 bl_info = {
     "name": "Water IO",
-    "author": "MadGamerHD",
-    "version": (1, 0, 1),
+    "author": "MadGamerHD + GPT Assistant",
+    "version": (1, 1, 0),
     "blender": (4, 0, 0),
-    "location": "View3D > Sidebar > Water IO",
-    "description": "Import/export GTA San Andreas water.dat with full parameters",
+    "location": "View3D > Sidebar > Water IO / Object Properties > Water Face Parameters",
+    "description": "Import/export GTA San Andreas water.dat with editable per-vertex parameters",
     "category": "Import-Export",
 }
 
 import bpy
 import bmesh
 import re
-from bpy.props import StringProperty
+from bpy.props import (
+    StringProperty, BoolProperty, CollectionProperty,
+    FloatVectorProperty
+)
 
 # --------------------------------------
-# Utility: parse face entries (coords + 4 params per vertex)
+# Property Group: holds 4 water parameters per vertex
+# --------------------------------------
+class WaterVertexProps(bpy.types.PropertyGroup):
+    params: FloatVectorProperty(
+        name="Params (p0,p1,p2,p3)",
+        description="GTA water parameters for this vertex",
+        size=4,
+        default=(0.0, 0.0, 0.0, 0.0)
+    )
+
+# --------------------------------------
+# Helpers: parse and write water.dat
 # --------------------------------------
 def parse_water_dat(filepath):
     faces = []  # list of (coords, params)
@@ -24,7 +38,6 @@ def parse_water_dat(filepath):
             if not line or line.lower().startswith('processed') or line.startswith('#'):
                 continue
             parts = [p for p in re.split(r'[\s,]+', line) if p]
-            # must be 22 tokens for tri or 29 for quad
             if len(parts) not in (22, 29):
                 continue
             verts = 3 if len(parts) == 22 else 4
@@ -40,7 +53,7 @@ def parse_water_dat(filepath):
     return faces
 
 # --------------------------------------
-# Import operator
+# Operators: Import & Export
 # --------------------------------------
 class IMPORT_OT_water_dat(bpy.types.Operator):
     bl_idname = "import_scene.water_dat"
@@ -55,29 +68,35 @@ class IMPORT_OT_water_dat(bpy.types.Operator):
         if not faces:
             self.report({'ERROR'}, "No valid entries found.")
             return {'CANCELLED'}
-        # clear old
+        # clear previous collection
         colname = "WaterIO"
         if colname in bpy.data.collections:
             old = bpy.data.collections[colname]
-            for obj in list(old.objects): bpy.data.objects.remove(obj, do_unlink=True)
+            for obj in list(old.objects):
+                bpy.data.objects.remove(obj, do_unlink=True)
             bpy.data.collections.remove(old)
         col = bpy.data.collections.new(colname)
         context.scene.collection.children.link(col)
-        # create objects
+
         for idx, (coords, params) in enumerate(faces):
             mesh = bpy.data.meshes.new(f"Zone_{idx}")
             obj = bpy.data.objects.new(f"Zone_{idx}", mesh)
             col.objects.link(obj)
             bm = bmesh.new()
-            vlist = [bm.verts.new(co) for co in coords]
+            verts = [bm.verts.new(co) for co in coords]
             try:
-                bm.faces.new(vlist)
+                bm.faces.new(verts)
             except ValueError:
                 pass
             bm.to_mesh(mesh)
             bm.free()
-            # store parameters on object
-            obj["water_params"] = params
+
+            # mark as water and assign per-vertex props
+            obj.is_water = True
+            obj.water_verts.clear()
+            for pr in params:
+                item = obj.water_verts.add()
+                item.params = pr
         self.report({'INFO'}, f"Loaded {len(faces)} zones into '{colname}'.")
         return {'FINISHED'}
 
@@ -85,9 +104,6 @@ class IMPORT_OT_water_dat(bpy.types.Operator):
         context.window_manager.fileselect_add(self)
         return {'RUNNING_MODAL'}
 
-# --------------------------------------
-# Export operator
-# --------------------------------------
 class EXPORT_OT_water_dat(bpy.types.Operator):
     bl_idname = "export_scene.water_dat"
     bl_label = "Export water.dat"
@@ -97,21 +113,30 @@ class EXPORT_OT_water_dat(bpy.types.Operator):
     filepath: StringProperty(subtype='FILE_PATH')
 
     def execute(self, context):
-        # collect selected zone objects
-        zones = [o for o in context.selected_objects if o.get("water_params")]
+        zones = [o for o in context.selected_objects if getattr(o, 'is_water', False)]
         if not zones:
             self.report({'ERROR'}, "Select imported water zone objects to export.")
             return {'CANCELLED'}
+
+        prevent = context.scene.prevent_water_merge
+        # TODO: implement merging behavior if prevent is False
+
         lines = ["processed"]
         for obj in zones:
-            params = obj["water_params"]
-            # world coords of verts
+            # choose source of params: updated props or legacy stored
+            params_list = []
+            if obj.water_verts:
+                params_list = [v.params for v in obj.water_verts]
+            else:
+                params_list = obj.get("water_params", [])
+
             coords = [obj.matrix_world @ v.co for v in obj.data.vertices]
             parts = []
-            for co, pr in zip(coords, params):
+            for co, pr in zip(coords, params_list):
                 parts.append(f"{co.x:.1f} {co.y:.1f} {co.z:.5f} {pr[0]:.5f} {pr[1]:.5f} {pr[2]:.5f} {pr[3]:.5f}")
             line = "    ".join(parts) + "    1"
             lines.append(line)
+
         with open(self.filepath, 'w') as f:
             for l in lines:
                 f.write(l + "\n")
@@ -123,7 +148,7 @@ class EXPORT_OT_water_dat(bpy.types.Operator):
         return {'RUNNING_MODAL'}
 
 # --------------------------------------
-# Panel
+# UI Panels
 # --------------------------------------
 class VIEW3D_PT_water_io(bpy.types.Panel):
     bl_label = "Water IO"
@@ -137,18 +162,81 @@ class VIEW3D_PT_water_io(bpy.types.Panel):
         layout.operator("import_scene.water_dat", text="Load water.dat")
         layout.operator("export_scene.water_dat", text="Export water.dat")
 
+class OBJECT_PT_water_params(bpy.types.Panel):
+    bl_idname = "OBJECT_PT_water_params"
+    bl_label = "Water Face Parameters"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "object"
+
+    @classmethod
+    def poll(cls, context):
+        obj = context.object
+        return (obj and obj.type == 'MESH' and getattr(obj, 'is_water', False))
+
+    def draw(self, context):
+        layout = self.layout
+        obj = context.object
+        for i, v in enumerate(obj.water_verts):
+            box = layout.box()
+            box.label(text=f"Vertex {i+1} Params:")
+            box.prop(v, "params", text="")
+
+class SCENE_PT_water_export_options(bpy.types.Panel):
+    bl_idname = "SCENE_PT_water_export_options"
+    bl_label = "Water Export Options"
+    bl_space_type = 'PROPERTIES'
+    bl_region_type = 'WINDOW'
+    bl_context = "scene"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(context.scene, "prevent_water_merge")
+
 # --------------------------------------
 # Registration
 # --------------------------------------
+def update_is_water(self, context):
+    # ensure water_verts matches vertex count
+    obj = context.object
+    if not obj or not obj.data:
+        return
+    n = len(obj.data.vertices)
+    col = obj.water_verts
+    while len(col) < n:
+        col.add()
+    while len(col) > n:
+        col.remove(len(col)-1)
+
+classes = [WaterVertexProps,
+           IMPORT_OT_water_dat, EXPORT_OT_water_dat,
+           VIEW3D_PT_water_io, OBJECT_PT_water_params,
+           SCENE_PT_water_export_options]
+
+
 def register():
-    bpy.utils.register_class(IMPORT_OT_water_dat)
-    bpy.utils.register_class(EXPORT_OT_water_dat)
-    bpy.utils.register_class(VIEW3D_PT_water_io)
+    for cls in classes:
+        bpy.utils.register_class(cls)
+    bpy.types.Object.is_water = BoolProperty(
+        name="Is Water Face",
+        description="Mark this object as a GTA water face",
+        default=False,
+        update=update_is_water
+    )
+    bpy.types.Object.water_verts = CollectionProperty(type=WaterVertexProps)
+    bpy.types.Scene.prevent_water_merge = BoolProperty(
+        name="Prevent Water Merge",
+        description="Keep water faces separate on export",
+        default=False
+    )
+
 
 def unregister():
-    bpy.utils.unregister_class(VIEW3D_PT_water_io)
-    bpy.utils.unregister_class(EXPORT_OT_water_dat)
-    bpy.utils.unregister_class(IMPORT_OT_water_dat)
+    for cls in reversed(classes):
+        bpy.utils.unregister_class(cls)
+    del bpy.types.Object.is_water
+    del bpy.types.Object.water_verts
+    del bpy.types.Scene.prevent_water_merge
 
 if __name__ == "__main__":
     register()
