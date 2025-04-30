@@ -1,7 +1,7 @@
 bl_info = {
     "name": "Water IO",
     "author": "MadGamerHD + GPT Assistant",
-    "version": (1, 0, 0),
+    "version": (1, 3, 0),
     "blender": (4, 0, 0),
     "location": "View3D > Sidebar > Water IO",
     "description": "Import/export GTA San Andreas water.dat with editable per-vertex parameters and color coding",
