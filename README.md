@@ -1,4 +1,4 @@
-**# 📄 Water IO**  
+**# 📄 Water IO V1.3.0 **  
 
 **Water IO** is a Blender 4.0 add-on for **importing**, **editing**, **color-coding**, and **exporting** `water.dat` files used in **GTA San Andreas**.
 
