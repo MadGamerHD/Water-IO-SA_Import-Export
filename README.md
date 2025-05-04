@@ -1,6 +1,6 @@
-**# 📄 Water IO V1.3.0 **  
+# 📄 Water IO V1.3.5  
 
-**Water IO** is a Blender 4.0 add-on for **importing**, **editing**, **color-coding**, and **exporting** `water.dat` files used in **GTA San Andreas**.
+**Water IO** is a Blender 4.0 add-on for **importing**, **editing**, **color-coding**, and **exporting** `water.dat` files used in **GTA San Andreas**. It now also includes a **Prevent Water Merge** option and a **Fix Zone** utility.  
 
 ---
 
@@ -11,9 +11,11 @@
 - **Mark** objects as **Water Faces** and store per-vertex GTA water parameters (p0–p3).  
 - **Edit** all four parameters for each vertex directly in the **Object Properties** panel.  
 - **Automatically color-code** water faces based on depth parameter (p2) using configurable **Shallow Threshold**.  
+- **Prevent Water Merge**: Optionally export adjacent zones as separate entries to preserve distinct regions.  
+- **Fix Zone**: Remove selected zones whose area falls below a user-defined threshold to avoid small-crash issues.  
 - **Export** (Save) the selected water zones back into a correctly formatted `water.dat` file.  
 - **Automatically adds** the line `processed` at the top of exported files.  
-- **Fully supports multi-selection**: you can export multiple water zones at once.
+- **Fully supports multi-selection**: you can export multiple water zones at once.  
 
 ---
 
@@ -33,22 +35,32 @@
 
 After import (or whenever parameters change), Water IO assigns a material based on each face's average **depth** (p2):  
 
-- **Shallow Water** (p2 &lt; Shallow Threshold): Light-blue transparent material (`WaterShallow`).  
+- **Shallow Water** (p2 < Shallow Threshold): Light-blue transparent material (`WaterShallow`).  
 - **Deep Water** (p2 ≥ Shallow Threshold): Dark-blue transparent material (`WaterDeep`).  
 
 The **Shallow Threshold** slider in **Scene Properties → Water Options** controls the cutoff depth (default: **0.5**).  
 
-Color coding updates automatically on import and when you adjust the threshold or per-vertex parameters.
+Color coding updates automatically on import and when you adjust the threshold or per-vertex parameters.  
 
 ---
 
 ## 💧 Water Face Parameters Panel
 
-When you select an object marked **Is Water Face**, a new panel appears in **Object Properties → Water Face Parameters**:
+When you select an object marked **Is Water Face**, a new panel appears in **Object Properties → Water Face Parameters**:  
 
 - A toggle **Is Water Face** marks or unmarks any mesh object as a water zone.  
 - One **boxed section per vertex**, with editable fields for the four parameters **(p0, p1, p2, p3)**.  
-- Edits immediately update the internal data and will reflect in color coding on export or manual recolor.
+- Edits immediately update the internal data and will reflect in color coding on export or manual recolor.  
+
+---
+
+## 🔧 Scene Options
+
+Located in **Scene Properties → Water Options**:
+
+- **Shallow Threshold**: Depth cutoff for differentiating shallow vs. deep water (default **0.5**).  
+- **Prevent Water Merge**: When enabled, adjacent zones export as separate entries, preserving distinct regions (default **Off**).  
+- **Fix Thresh**: Area threshold below which zones are considered too small; select a zone and click **Fix Zone** to remove (default **0.01**).  
 
 ---
 
@@ -64,16 +76,7 @@ When you select an object marked **Is Water Face**, a new panel appears in **Obj
      ```  
      x1 y1 z1 p0 p1 p2 p3   x2 y2 z2 p0 p1 p2 p3   x3 y3 z3 p0 p1 p2 p3   (optional fourth vertex)   1  
      ```  
-   - Exports multiple selected zones; touching faces remain separate unless **Prevent Water Merge** is enabled (no merging by default).
-
----
-
-## 🔧 Export Options
-
-A new panel in **Scene Properties → Water Options** provides:
-
-- **Prevent Water Merge**: When enabled, each zone exports as its own entry even if adjacent—useful for preserving distinct regions.
-- **Shallow Threshold**: Adjust the depth cutoff for color coding shallow vs. deep water.
+   - Honors **Prevent Water Merge** and **Fix Zone** settings when exporting.  
 
 ---
 
@@ -88,18 +91,19 @@ A new panel in **Scene Properties → Water Options** provides:
 
 ## 📝 Summary Table
 
-| Feature                   | Description                                                                |
-|---------------------------|----------------------------------------------------------------------------|
-| Import                    | Loads `water.dat` into separate Blender objects                            |
-| Is Water Face Toggle      | Marks/unmarks mesh objects as GTA water zones                              |
-| Per-Vertex Editing        | Edit all four GTA parameters (p0–p3) in UI                                 |
-| Automatic Color Coding    | Depth-based material assignment with configurable threshold                |
-| Export                    | Saves selected zones back to `water.dat`                                   |
-| Prevent Water Merge       | Toggle merging behavior on export                                          |
-| Scene Options             | Shallow Threshold & Prevent Water Merge settings in Scene Properties panel |
-| Collection Management     | Auto-clears old data in **WaterIO** collection                             |
-| Triangle & Quad Support   | Fully supports 3- and 4-vertex water faces                                 |
-| Undo/Redo Support         | All actions are undoable and redoable                                       |
+| Feature                   | Description                                                                        |
+|---------------------------|------------------------------------------------------------------------------------|
+| Import                    | Loads `water.dat` into separate Blender objects                                    |
+| Is Water Face Toggle      | Marks/unmarks mesh objects as GTA water zones                                      |
+| Per-Vertex Editing        | Edit all four GTA parameters (p0–p3) in UI                                         |
+| Automatic Color Coding    | Depth-based material assignment with configurable threshold                        |
+| Prevent Water Merge       | Toggle merging behavior on export                                                  |
+| Fix Zone                  | Remove small zones below area threshold                                            |
+| Export                    | Saves selected zones back to `water.dat`                                           |
+| Scene Options             | Shallow Threshold, Prevent Water Merge & Fix Thresh settings in Scene Properties    |
+| Collection Management     | Auto-clears old data in **WaterIO** collection                                     |
+| Triangle & Quad Support   | Fully supports 3- and 4-vertex water faces                                         |
+| Undo/Redo Support         | All actions are undoable and redoable                                               |
 
 ---
 
