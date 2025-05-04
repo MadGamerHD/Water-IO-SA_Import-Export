@@ -111,13 +111,13 @@ Located in **3D Viewport → Sidebar → Water IO**. Everything lives in one coh
 
 ### Introduction
 
-In **GTA San Andreas**, the `water.dat` file located in the game's `data` folder defines all the water surfaces within the game world. This plain-text file outlines the geometry and behavior of water planes such as oceans, lakes, pools, and more. Notably, the default game includes up to 307 water planes, with a hard limit of 1021 planes, which can be extended with mods (e.g., **Sacky’s Limit Adjuster**).
+In **GTA San Andreas**, the `water.dat` file located in the game's `data` folder defines all the water surfaces within the game world. This plain-text file outlines the geometry and behavior of water planes such as oceans, lakes, pools, and more. Notably, the default game includes up to 307 water planes, with a hard limit of 1021 planes, which can be extended with mods (e.g., **Limit Adjusters**).
 
 ### File Format
 
 The `water.dat` file begins with a header (usually the word "processed"), followed by individual entries for each water plane. Each entry specifies the coordinates for the corners of a water plane (either triangular or rectangular), along with additional parameters. The planes can have 3 (triangular) or 4 (rectangular) corner points, and each water plane is defined by a set of world coordinates (x, y) and a common water height (z).
 
-While the planes are not required to align to a grid, adjacent planes may touch, and their continuity depends on matching edge coordinates. Modding tools like **3ds Max water I/O scripts** can be used to import/export this format.
+While the planes are not required to align to a grid, adjacent planes may touch, and their continuity depends on matching edge coordinates. Modding tools like **water I/O scripts like this one** can be used to import/export this format.
 
 ### Plane Parameters (P0–P3)
 
