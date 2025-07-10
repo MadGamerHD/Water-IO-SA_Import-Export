@@ -1,4 +1,4 @@
-Water IO V1.4.0 is a Blender add‑on that lets you work seamlessly with GTA SA’s water.dat format. You can import existing water zones, tweak per‑vertex parameters, color‑code zones by depth, create new water patches from scratch, and then export back to a valid water.dat. Everything is integrated into the 3D View sidebar for a smooth, non‑destructive workflow.
+Water IO V1.3.7 is a Blender add‑on that lets you work seamlessly with GTA SA’s water.dat format. You can import existing water zones, tweak per‑vertex parameters, color‑code zones by depth, create new water patches from scratch, and then export back to a valid water.dat. Everything is integrated into the 3D View sidebar for a smooth, non‑destructive workflow.
 
 Key Features
 Import & Export
